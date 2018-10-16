@@ -3,9 +3,9 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID; 
+var db = require('./db'); 
 
 var app = express(); // сервер
-var db;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
@@ -16,7 +16,7 @@ app.get('/', function(req , res) {
 
 app.get('/people', function(req, res) {
 	//res.send(people);
-	db.collection('people1').find().toArray(function(err, docs) {
+	db.get().collection('people1').find().toArray(function(err, docs) {
 		if (err) {
 			console.log(err);
 			return res.sendStatus(500);
@@ -29,7 +29,7 @@ app.post('/people', function(req, res) {
 	var people  = {
 		name : req.body.name
 	};
-	db.collection('people1').insert(people, function(err, result) {
+	db.get().collection('people1').insert(people, function(err, result) {
 		if (err) {
 			console.log(err);
 			return res.sendStatus(500);
@@ -44,7 +44,7 @@ app.post('/people', function(req, res) {
 });
 
 app.get('/people/:id', function(req, res){
-	db.collection('people1').findOne({ _id : ObjectID(req.params.id)}, function (err, docs) {
+	db.get().collection('people1').findOne({ _id : ObjectID(req.params.id)}, function (err, docs) {
 		if (err) {
 			console.log(err);
 			return res.sendStatus(500);
@@ -70,7 +70,7 @@ app.get('/people/:id', function(req, res){
 });
 	
 app.put('/people/:id', function(req, res) {
-	db.collection('people1').updateOne(
+	db.get().collection('people1').updateOne(
 		{ _id  : ObjectID(req.params.id)},
 		{ name : req.body.name },
 		function(err, result) {
@@ -84,7 +84,7 @@ app.put('/people/:id', function(req, res) {
 });
 
 app.delete('/people/:id', function(req, res) {
-	db.collection('people1').deleteOne(
+	db.get().collection('people1').deleteOne(
 		{ _id : ObjectID(req.params.id) },
 		function(err, result) {
 			if(err) {
@@ -96,12 +96,11 @@ app.delete('/people/:id', function(req, res) {
 	);
 });
 
-MongoClient.connect('mongodb://localhost:27017/myapp', function(err, database) {
+db.connect('mongodb://localhost:27017/myapp', function(err) {
 	if (err) {
 		return console.log(err);
 	}
 	else {
-		db = database;
 		app.listen('3000', function() {
 		console.log('Port : 3000');
 		});
